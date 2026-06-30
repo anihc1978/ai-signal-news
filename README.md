@@ -1,5 +1,13 @@
 # AI Signal — a reliable AI news reader
 
+[![Live demo](https://img.shields.io/badge/demo-live-2ea44f)](https://ai-signal-news.netlify.app) &nbsp;[![Weekly digest: Claude](https://img.shields.io/badge/weekly%20digest-Claude-d97757)](https://www.anthropic.com) &nbsp;![No build step](https://img.shields.io/badge/build-none-555)
+
+> **Signal over noise** — primary-source AI news (the labs' own blogs, arXiv, and high-signal newsletters) in one clean feed, with an optional Claude-powered weekly digest.
+
+🔗 **Live:** https://ai-signal-news.netlify.app
+
+![AI Signal — live screenshot](docs/screenshot.png)
+
 A single static page that aggregates verified, high-signal AI sources and surfaces a Claude-powered weekly digest. No framework, no build step — pure HTML/CSS/JS plus one dependency-free Netlify Function.
 
 - **Live mode:** the page calls `/.netlify/functions/news`, which fetches every feed server-side, de-dupes, sorts, and returns JSON. The "Weekly digest" button calls the same function with `?digest=1` for a Claude TL;DR.
