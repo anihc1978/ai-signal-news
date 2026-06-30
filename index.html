@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Signal — your reliable AI news reader</title>
+<style>
+  :root {
+    --cream: #faf9f5;
+    --cream-2: #f3f1ea;
+    --card: #ffffff;
+    --ink: #141413;
+    --ink-soft: #3d3d3a;
+    --muted: #73726c;
+    --faint: #9b9a93;
+    --line: #e6e3da;
+    --line-strong: #d8d4c8;
+    --terra: #d97757;
+    --terra-soft: #f6e9e3;
+    --terra-ink: #a44a2c;
+    --accent-bg: #eef0ee;
+    --shadow: 0 1px 2px rgba(20,20,19,.04), 0 4px 16px rgba(20,20,19,.05);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --maxw: 1180px;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  }
+  [data-theme="dark"] {
+    --cream: #1a1916;
+    --cream-2: #211f1b;
+    --card: #25231f;
+    --ink: #f3f1ea;
+    --ink-soft: #d8d4c8;
+    --muted: #a3a097;
+    --faint: #75726a;
+    --line: #34322c;
+    --line-strong: #423f37;
+    --terra: #e08a6c;
+    --terra-soft: #3a2a22;
+    --terra-ink: #f0b59c;
+    --accent-bg: #2c2a25;
+    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 4px 16px rgba(0,0,0,.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background .25s ease, color .25s ease;
+  }
+  a { color: inherit; }
+  ::selection { background: var(--terra-soft); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--cream) 88%, transparent);
+    backdrop-filter: saturate(150%) blur(10px);
+    -webkit-backdrop-filter: saturate(150%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-inner {
+    max-width: var(--maxw); margin: 0 auto;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    background: var(--terra); position: relative;
+    display: grid; place-items: center;
+  }
+  .logo span {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2.5px solid #fff;
+    border-right-color: transparent; border-bottom-color: transparent;
+    transform: rotate(-45deg);
+  }
+  .brand h1 {
+    font-family: var(--serif);
+    font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -.01em;
+    white-space: nowrap;
+  }
+  .brand .tag {
+    font-size: 12px; color: var(--muted); margin: 0; line-height: 1.2;
+    white-space: nowrap;
+  }
+  .grow { flex: 1 1 auto; }
+
+  .search-wrap { position: relative; flex: 1 1 320px; max-width: 420px; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
+  #search {
+    width: 100%; height: 42px; padding: 0 38px 0 36px;
+    border: 1px solid var(--line-strong); border-radius: 21px;
+    background: var(--card); color: var(--ink); font-size: 14px; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  #search:focus { outline: none; border-color: var(--terra); box-shadow: 0 0 0 3px var(--terra-soft); }
+  .search-clear {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    border: none; background: none; cursor: pointer; color: var(--faint);
+    width: 24px; height: 24px; border-radius: 50%; display: none; place-items: center;
+  }
+  .search-clear:hover { background: var(--cream-2); color: var(--ink); }
+  .search-clear.show { display: grid; }
+
+  .icon-btn {
+    height: 42px; min-width: 42px; padding: 0 12px; border-radius: 21px;
+    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink-soft);
+    cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .icon-btn:hover { background: var(--cream-2); border-color: var(--muted); }
+  .icon-btn:disabled { opacity: .55; cursor: progress; }
+  .icon-btn svg { flex: none; }
+  .icon-btn .lbl { font-weight: 500; }
+  .icon-btn.primary { background: var(--terra); border-color: var(--terra); color: #fff; }
+  .icon-btn.primary:hover { background: #c96746; border-color: #c96746; }
+  .icon-btn.primary:disabled { background: var(--terra); border-color: var(--terra); }
+  .icon-btn .count { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Layout ---------- */
+  .shell { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 80px; display: grid; grid-template-columns: 232px 1fr; gap: 36px; align-items: start; }
+  @media (max-width: 860px) { .shell { grid-template-columns: 1fr; gap: 0; } }
+
+  .banner {
+    max-width: var(--maxw); margin: 14px auto 0; padding: 0 24px;
+  }
+  .banner-inner {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; padding: 9px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+  }
+  .banner-inner.live { background: var(--accent-bg); color: var(--ink-soft); }
+  .banner-inner.demo { background: var(--terra-soft); color: var(--terra-ink); border-color: color-mix(in srgb, var(--terra) 30%, transparent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .banner-inner.live .dot { background: #4a9d6e; box-shadow: 0 0 0 3px color-mix(in srgb, #4a9d6e 22%, transparent); }
+  .banner-inner.demo .dot { background: var(--terra); box-shadow: 0 0 0 3px color-mix(in srgb, var(--terra) 25%, transparent); }
+  .banner-inner b { font-weight: 600; }
+
+  /* ---------- Sidebar ---------- */
+  aside { position: sticky; top: 78px; padding-top: 28px; }
+  @media (max-width: 860px) { aside { position: static; padding-top: 18px; } }
+  .filter-group { margin-bottom: 26px; }
+  .filter-group h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--faint); font-weight: 600; margin: 0 0 10px; padding-left: 2px;
+  }
+  .chip-list { display: flex; flex-direction: column; gap: 2px; }
+  .chip {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 11px; border-radius: var(--radius-sm); cursor: pointer;
+    font-size: 14px; color: var(--ink-soft); border: 1px solid transparent;
+    background: none; width: 100%; text-align: left; font-family: inherit;
+    transition: background .12s, color .12s;
+  }
+  .chip:hover { background: var(--cream-2); }
+  .chip.active { background: var(--card); border-color: var(--line-strong); color: var(--ink); font-weight: 500; box-shadow: var(--shadow); }
+  .chip .cat-dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .chip .num { margin-left: auto; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .chip.active .num { color: var(--muted); }
+  .src-scroll { max-height: 340px; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+  .src-scroll::-webkit-scrollbar { width: 7px; }
+  .src-scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+  .chip.small { font-size: 13px; padding: 7px 11px; }
+
+  .mobile-filters { display: none; }
+  @media (max-width: 860px) {
+    aside .desktop-filters { display: none; }
+    .mobile-filters { display: block; padding: 16px 0 4px; }
+    .mobile-filters .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .mobile-filters select {
+      flex: 1 1 140px; height: 42px; border-radius: var(--radius-sm);
+      border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+      font-size: 14px; font-family: inherit; padding: 0 10px;
+    }
+  }
+
+  /* ---------- Main ---------- */
+  main { padding-top: 28px; min-width: 0; }
+  .toolbar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .toolbar h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.015em; }
+  .toolbar .meta { font-size: 13px; color: var(--muted); }
+  .toolbar .right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .seg {
+    display: inline-flex; background: var(--cream-2); border-radius: 20px; padding: 3px; gap: 2px;
+  }
+  .seg button {
+    border: none; background: none; cursor: pointer; font-family: inherit;
+    font-size: 13px; font-weight: 500; color: var(--muted); padding: 6px 13px; border-radius: 18px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .seg button.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+
+  /* ---------- Digest ---------- */
+  #digest { margin: 18px 0 8px; }
+  .digest-card {
+    border: 1px solid color-mix(in srgb, var(--terra) 26%, var(--line));
+    background: linear-gradient(180deg, var(--terra-soft), color-mix(in srgb, var(--terra-soft) 35%, var(--card)));
+    border-radius: var(--radius); padding: 20px 22px; position: relative;
+  }
+  .digest-card .dhead { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .digest-card .dhead .pill {
+    font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    background: var(--terra); color: #fff; padding: 3px 9px; border-radius: 20px;
+  }
+  .digest-card .dhead h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; margin: 0; }
+  .digest-card .dbody { font-family: var(--serif); font-size: 15.5px; line-height: 1.7; color: var(--ink-soft); white-space: pre-wrap; }
+  .digest-card .dclose {
+    position: absolute; top: 12px; right: 12px; border: none; background: none; cursor: pointer;
+    color: var(--terra-ink); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  }
+  .digest-card .dclose:hover { background: color-mix(in srgb, var(--terra) 14%, transparent); }
+  .digest-loading { display: flex; align-items: center; gap: 10px; color: var(--terra-ink); font-size: 14px; }
+
+  /* ---------- Cards ---------- */
+  .feed { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .article {
+    position: relative; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow);
+    transition: border-color .15s, transform .12s;
+  }
+  .article:hover { border-color: var(--line-strong); }
+  .article.read { opacity: .54; }
+  .article.read:hover { opacity: .82; }
+  .a-top { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; flex-wrap: wrap; }
+  .cat-chip {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+    letter-spacing: .02em; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .cat-chip .cd { width: 7px; height: 7px; border-radius: 2px; }
+  .src-name { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .a-date { font-size: 12.5px; color: var(--faint); margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .a-title {
+    font-family: var(--serif); font-size: 18px; font-weight: 600; line-height: 1.35;
+    margin: 0 0 6px; letter-spacing: -.01em;
+  }
+  .a-title a { text-decoration: none; }
+  .a-title a:hover { color: var(--terra-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--terra) 50%, transparent); }
+  .a-summary { font-size: 14px; color: var(--ink-soft); margin: 0 0 10px; line-height: 1.6; }
+  .a-actions { display: flex; align-items: center; gap: 6px; }
+  .a-btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500;
+    padding: 6px 11px; border-radius: 18px; display: inline-flex; align-items: center; gap: 6px;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .a-btn:hover { background: var(--cream-2); color: var(--ink); border-color: var(--line-strong); }
+  .a-btn.on { background: var(--terra-soft); color: var(--terra-ink); border-color: color-mix(in srgb, var(--terra) 35%, transparent); }
+  .a-btn svg { flex: none; }
+  .read-stripe {
+    position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 3px;
+    background: var(--terra); opacity: 0; transition: opacity .15s;
+  }
+  .article.saved .read-stripe { opacity: 1; }
+
+  /* ---------- Skeletons ---------- */
+  .skel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+  .sk { background: linear-gradient(90deg, var(--cream-2) 25%, color-mix(in srgb, var(--cream-2) 55%, var(--card)) 50%, var(--cream-2) 75%); background-size: 200% 100%; animation: shimmer 1.3s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .sk-line { height: 12px; margin-bottom: 9px; }
+
+  /* ---------- States ---------- */
+  .state { text-align: center; padding: 64px 20px; color: var(--muted); }
+  .state svg { color: var(--line-strong); margin-bottom: 14px; }
+  .state h3 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 0 0 6px; font-weight: 600; }
+  .state p { margin: 0 0 18px; font-size: 14px; max-width: 380px; margin-left: auto; margin-right: auto; }
+  .state.error svg { color: var(--terra); }
+
+  footer { max-width: var(--maxw); margin: 0 auto; padding: 30px 24px 50px; color: var(--faint); font-size: 12.5px; border-top: 1px solid var(--line); }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<h2 class="sr-only">AI Signal, a reader that aggregates AI news from reliable labs, research, newsletters, outlets and community sources.</h2>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><span></span></div>
+      <div>
+        <h1>AI&nbsp;Signal</h1>
+        <p class="tag">Signal over noise — from sources worth trusting</p>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Search titles, sources, summaries…" autocomplete="off" aria-label="Search articles" />
+      <button class="search-clear" id="searchClear" aria-label="Clear search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <button class="icon-btn primary" id="digestBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+      <span class="lbl">Weekly digest</span>
+    </button>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle light or dark theme">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="banner" id="bannerWrap" hidden>
+  <div class="banner-inner" id="banner"></div>
+</div>
+
+<div class="shell">
+  <aside>
+    <div class="desktop-filters">
+      <div class="filter-group">
+        <h2>Category</h2>
+        <div class="chip-list" id="catFilters"></div>
+      </div>
+      <div class="filter-group">
+        <h2>Source</h2>
+        <div class="chip-list src-scroll" id="srcFilters"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="mobile-filters">
+      <div class="row">
+        <select id="mCat" aria-label="Filter by category"></select>
+        <select id="mSrc" aria-label="Filter by source"></select>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <h2 id="viewTitle">Latest</h2>
+      <span class="meta" id="resultMeta"></span>
+      <div class="right">
+        <div class="seg" role="tablist" aria-label="View">
+          <button id="tabAll" class="active" role="tab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            All
+          </button>
+          <button id="tabSaved" role="tab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 17.3-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"/></svg>
+            Saved <span id="savedCount" class="count"></span>
+          </button>
+        </div>
+        <button class="icon-btn" id="refreshBtn" aria-label="Refresh feed" style="min-width:42px;padding:0 11px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="digest"></div>
+    <div class="feed" id="feed"></div>
+  </main>
+</div>
+
+<footer>
+  AI Signal aggregates public RSS/Atom feeds from each source. Titles and links belong to their publishers — click through to read the originals.
+  Built as a single static page, no tracking, all preferences stored locally in your browser.
+</footer>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Curated, verified source list (used by the client-side fallback).
+   The live Netlify Function aggregates the same set server-side.
+   ============================================================ */
+const SOURCES = [
+  { name: "Anthropic News (community mirror)", feed_url: "https://raw.githubusercontent.com/taobojlen/anthropic-rss-feed/main/anthropic_news_rss.xml", category: "Labs" },
+  { name: "OpenAI Blog", feed_url: "https://openai.com/blog/rss.xml", category: "Labs" },
+  { name: "Google DeepMind Blog", feed_url: "https://deepmind.google/blog/rss.xml", category: "Labs" },
+  { name: "Google Research Blog", feed_url: "https://research.google/blog/rss/", category: "Research" },
+  { name: "Google – The Keyword (AI)", feed_url: "https://blog.google/technology/ai/rss/", category: "Labs" },
+  { name: "Hugging Face Blog", feed_url: "https://huggingface.co/blog/feed.xml", category: "Labs" },
+  { name: "arXiv cs.AI (Artificial Intelligence)", feed_url: "https://export.arxiv.org/rss/cs.AI", category: "Research" },
+  { name: "arXiv cs.LG (Machine Learning)", feed_url: "https://export.arxiv.org/rss/cs.LG", category: "Research" },
+  { name: "arXiv cs.CL (Computation and Language / NLP)", feed_url: "https://export.arxiv.org/rss/cs.CL", category: "Research" },
+  { name: "MIT Technology Review – Artificial Intelligence", feed_url: "https://www.technologyreview.com/topic/artificial-intelligence/feed/", category: "Outlets" },
+  { name: "Import AI (Jack Clark)", feed_url: "https://importai.substack.com/feed", category: "Newsletters" },
+  { name: "Ahead of AI (Sebastian Raschka)", feed_url: "https://magazine.sebastianraschka.com/feed", category: "Newsletters" },
+  { name: "Simon Willison's Weblog", feed_url: "https://simonwillison.net/atom/everything/", category: "Community" },
+  { name: "MIT News – Artificial Intelligence", feed_url: "https://news.mit.edu/rss/topic/artificial-intelligence2", category: "Research" },
+  { name: "Quanta Magazine", feed_url: "https://www.quantamagazine.org/feed/", category: "Outlets" }
+];
+
+const CATEGORIES = ["Labs", "Research", "Newsletters", "Outlets", "Community"];
+const CAT_COLOR = {
+  Labs:        "#d97757",
+  Research:    "#5a7fb5",
+  Newsletters: "#7a6bb0",
+  Outlets:     "#3f9b78",
+  Community:   "#c79a3a"
+};
+const CAT_TINT = {
+  Labs:        ["#f6e9e3", "#a44a2c"],
+  Research:    ["#e8eef6", "#36598c"],
+  Newsletters: ["#ece9f5", "#4f428a"],
+  Outlets:     ["#e3f1ea", "#2f6e51"],
+  Community:   ["#f6eed8", "#8a6a16"]
+};
+
+/* DEV/DEMO ONLY. AllOrigins is a third-party public CORS proxy used as a
+   fallback when the Netlify function is unreachable (e.g. the page is opened
+   as a bare file://). It sees every feed URL we request, has no SLA, and
+   rate-limits — it must NEVER be the production path. Production = the news
+   function. */
+const PROXY = "https://api.allorigins.win/raw?url=";
+const FN_NEWS = "/.netlify/functions/news";
+const LS = {
+  read:  "aisignal_read",
+  saved: "aisignal_saved",
+  theme: "aisignal_theme"
+};
+
+/* ---------- State ---------- */
+let ITEMS = [];
+let mode = "live";          // 'live' | 'demo'
+let activeCat = "all";
+let activeSrc = "all";
+let view = "all";           // 'all' | 'saved'
+let query = "";
+const readSet  = new Set(loadLS(LS.read));
+const savedSet = new Set(loadLS(LS.saved));
+
+/* ---------- Utilities ---------- */
+function loadLS(k){ try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } }
+function saveLS(k, set){ try { localStorage.setItem(k, JSON.stringify([...set])); } catch {} }
+function $(id){ return document.getElementById(id); }
+
+/* SECURITY: feed content is untrusted. Always escape before DOM insertion. */
+function esc(s){
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+/* Strip any markup/entities to plain text, then collapse whitespace. */
+function stripHtml(s){
+  if (!s) return "";
+  const d = document.createElement("div");
+  d.innerHTML = String(s);
+  return (d.textContent || d.innerText || "").replace(/\s+/g, " ").trim();
+}
+function clamp(s, n){ s = s || ""; return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s; }
+
+function relDate(d){
+  if (!(d instanceof Date) || isNaN(d)) return "";
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 0) return "just now";
+  if (diff < 60) return "just now";
+  if (diff < 3600) { const m = Math.round(diff/60); return m + "m ago"; }
+  if (diff < 86400) { const h = Math.round(diff/3600); return h + "h ago"; }
+  if (diff < 604800) { const dd = Math.round(diff/86400); return dd + (dd===1?" day ago":" days ago"); }
+  if (diff < 2629800) { const w = Math.round(diff/604800); return w + (w===1?" week ago":" weeks ago"); }
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+function itemId(it){ return it.link || (it.source + "::" + it.title); }
+
+/* Normalize a string into a fuzzy de-dupe key — mirrors the server's
+   dedupeKey() so client (demo) and server (live) de-dupe identically. */
+function dedupeKey(str){
+  return (str || "")
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/[#?].*$/, "")        // drop query/hash from links
+    .replace(/\/+$/, "")           // drop trailing slashes
+    .replace(/[^a-z0-9]+/g, " ")   // collapse punctuation
+    .trim();
+}
+/* De-dupe by link first, then by title — in SEPARATE key namespaces so two
+   different posts that merely share a title don't collapse into one. When a
+   duplicate is found, keep whichever copy is newer (dated copy beats undated). */
+function dedupeKeepNewest(items){
+  const byKey = new Map();   // namespaced key -> chosen item
+  const itemKeys = [];       // parallel: keys each item maps to
+  const out = [];
+  for (const it of items){
+    const linkKey = it.link ? "l:" + dedupeKey(it.link) : "";
+    const titleKey = "t:" + dedupeKey(it.title);
+    const keys = linkKey ? [linkKey, titleKey] : [titleKey];
+    // Find an existing item this collides with on any key.
+    let existing = null;
+    for (const k of keys){ if (byKey.has(k)){ existing = byKey.get(k); break; } }
+    if (existing){
+      const newer = (it.date && existing.date) ? (it.date > existing.date)
+                  : (it.date && !existing.date);
+      if (newer){
+        const idx = out.indexOf(existing);
+        if (idx !== -1) out[idx] = it;
+        // Re-point this item's keys (and the colliding item's) to the winner.
+        for (const k of itemKeys[idx] || []) byKey.set(k, it);
+        for (const k of keys) byKey.set(k, it);
+        if (idx !== -1) itemKeys[idx] = keys;
+      }
+      continue;
+    }
+    for (const k of keys) byKey.set(k, it);
+    out.push(it);
+    itemKeys.push(keys);
+  }
+  return out;
+}
+
+/* ---------- Theme ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  const sun = '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/>';
+  const moon = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  $("themeIcon").innerHTML = t === "dark" ? sun : moon;
+}
+(function initTheme(){
+  let t = localStorage.getItem(LS.theme);
+  if (!t) t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  applyTheme(t);
+})();
+$("themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  localStorage.setItem(LS.theme, next);
+  applyTheme(next);
+});
+
+/* ---------- Banner ---------- */
+function setBanner(){
+  const w = $("bannerWrap"), b = $("banner");
+  w.hidden = false;
+  if (mode === "live"){
+    b.className = "banner-inner live";
+    b.innerHTML = '<span class="dot"></span><span><b>Live mode</b> — aggregated &amp; de-duplicated server-side via the news function.</span>';
+  } else {
+    b.className = "banner-inner demo";
+    b.innerHTML = '<span class="dot"></span><span><b>Demo mode</b> — the server function isn’t reachable, so feeds are fetched directly in your browser through a public CORS proxy. Deploy to Netlify for the full live experience.</span>';
+  }
+}
+
+/* ============================================================
+   Data loading
+   ============================================================ */
+async function loadNews(){
+  renderSkeletons();
+  // 1) Try the live serverless endpoint.
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 9000);
+    const res = await fetch(FN_NEWS, { signal: ctrl.signal, headers: { "Accept": "application/json" } });
+    clearTimeout(t);
+    if (res.ok){
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : (data.items || []);
+      if (arr.length){
+        ITEMS = normalize(arr);
+        mode = "live";
+        finishLoad();
+        return;
+      }
+    }
+    throw new Error("empty/unavailable");
+  } catch (e){
+    // 2) Fallback: client-side fetch through the CORS proxy.
+    mode = "demo";
+    await loadClientSide();
+  }
+}
+
+function normalize(arr){
+  return arr.map(it => {
+    const title = stripHtml(it.title) || "(untitled)";
+    const link  = typeof it.link === "string" ? it.link : "";
+    const source = stripHtml(it.source) || "Unknown";
+    let category = it.category;
+    if (!CATEGORIES.includes(category)){
+      const m = SOURCES.find(s => s.name === source);
+      category = m ? m.category : "Outlets";
+    }
+    const d = it.date ? new Date(it.date) : null;
+    const summaryRaw = it.summary != null ? stripHtml(it.summary) : "";
+    return {
+      title, link, source, category,
+      date: (d && !isNaN(d)) ? d : null,
+      summary: summaryRaw ? clamp(summaryRaw, 240) : ""
+    };
+  }).filter(it => it.link || it.title);
+}
+
+async function loadClientSide(){
+  const results = await Promise.allSettled(SOURCES.map(fetchFeed));
+  let all = [];
+  let ok = 0;
+  results.forEach(r => { if (r.status === "fulfilled" && r.value && r.value.length){ ok++; all = all.concat(r.value); } });
+
+  if (!all.length){
+    ITEMS = [];
+    setBanner();
+    renderError();
+    return;
+  }
+  ITEMS = dedupeKeepNewest(all);
+  finishLoad();
+}
+
+async function fetchFeed(src){
+  const url = PROXY + encodeURIComponent(src.feed_url);
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 12000);
+  let text;
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    text = await res.text();
+  } finally { clearTimeout(t); }
+  return parseFeed(text, src);
+}
+
+function parseFeed(xmlText, src){
+  const doc = new DOMParser().parseFromString(xmlText, "text/xml");
+  if (doc.querySelector("parsererror")) return [];
+  const out = [];
+  const isAtom = doc.querySelector("feed > entry") && !doc.querySelector("channel > item");
+  const nodes = isAtom ? doc.querySelectorAll("entry") : doc.querySelectorAll("item");
+
+  nodes.forEach(node => {
+    const title = stripHtml(text(node, "title"));
+    let link = "";
+    if (isAtom){
+      const links = node.querySelectorAll("link");
+      let chosen = null;
+      links.forEach(l => {
+        const rel = l.getAttribute("rel");
+        if (rel === "alternate" || (!rel && !chosen)) chosen = l;
+      });
+      if (!chosen && links[0]) chosen = links[0];
+      link = chosen ? (chosen.getAttribute("href") || "") : "";
+    } else {
+      link = text(node, "link");
+      if (!link){
+        const g = node.querySelector("guid");
+        if (g && /^https?:/i.test(g.textContent || "")) link = g.textContent.trim();
+      }
+    }
+    const dateStr = text(node, "pubDate") || text(node, "published") || text(node, "updated") ||
+                    nodeNS(node, "http://purl.org/dc/elements/1.1/", "date");
+    const d = dateStr ? new Date(dateStr) : null;
+
+    // Summary fallback order mirrors the server: description → content:encoded
+    // → summary → content. We strip markup and clamp.
+    let summary = stripHtml(text(node, "description"));
+    if (!summary){
+      const enc = nodeNS(node, "http://purl.org/rss/1.0/modules/content/", "encoded");
+      if (enc) summary = stripHtml(enc);
+    }
+    if (!summary) summary = stripHtml(text(node, "summary"));
+    if (!summary){
+      const content = node.getElementsByTagName("content")[0];
+      if (content) summary = stripHtml(content.textContent);
+    }
+
+    if (!title && !link) return;
+    out.push({
+      title: title || "(untitled)",
+      link: link.trim(),
+      source: src.name,
+      category: src.category,
+      date: (d && !isNaN(d)) ? d : null,
+      summary: summary ? clamp(summary, 240) : ""
+    });
+  });
+  return out;
+}
+function text(node, tag){
+  const el = node.getElementsByTagName(tag)[0];
+  return el ? (el.textContent || "").trim() : "";
+}
+function nodeNS(node, ns, local){
+  const el = node.getElementsByTagNameNS ? node.getElementsByTagNameNS(ns, local)[0] : null;
+  return el ? (el.textContent || "").trim() : "";
+}
+
+// Round-robin across sources so a high-volume feed (e.g. arXiv's many same-day
+// papers) can't flood out the lab blogs and newsletters — newest from each
+// source first, then the next from each. Keeps the feed a diverse "signal".
+function diversify(items){
+  const groups = new Map();
+  for (const it of items){
+    const k = it.source || "?";
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(it);
+  }
+  for (const list of groups.values()){
+    list.sort((a, b) => (b.date ? b.date.getTime() : 0) - (a.date ? a.date.getTime() : 0));
+  }
+  const lists = [...groups.values()];
+  const out = [];
+  let round = 0, added = true;
+  while (added){
+    added = false;
+    for (const list of lists){
+      if (round < list.length){ out.push(list[round]); added = true; }
+    }
+    round++;
+  }
+  return out;
+}
+
+function finishLoad(){
+  ITEMS = diversify(ITEMS);
+  setBanner();
+  buildFilters();
+  render();
+}
+
+/* ============================================================
+   Filters
+   ============================================================ */
+function countByCat(){
+  const c = {}; CATEGORIES.forEach(k => c[k] = 0);
+  ITEMS.forEach(it => { if (c[it.category] != null) c[it.category]++; });
+  return c;
+}
+function sourcesPresent(){
+  const map = new Map();
+  ITEMS.forEach(it => { map.set(it.source, (map.get(it.source) || 0) + 1); });
+  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function buildFilters(){
+  const cc = countByCat();
+  // Category chips
+  const catBox = $("catFilters");
+  catBox.innerHTML = "";
+  catBox.appendChild(catChip("all", "All categories", ITEMS.length, "#9b9a93"));
+  CATEGORIES.forEach(cat => catBox.appendChild(catChip(cat, cat, cc[cat], CAT_COLOR[cat])));
+
+  // Source chips
+  const srcBox = $("srcFilters");
+  srcBox.innerHTML = "";
+  srcBox.appendChild(srcChip("all", "All sources", ITEMS.length));
+  sourcesPresent().forEach(([name, n]) => srcBox.appendChild(srcChip(name, name, n)));
+
+  // Mobile selects
+  const mc = $("mCat");
+  mc.innerHTML = "";
+  mc.appendChild(opt("all", "All categories (" + ITEMS.length + ")"));
+  CATEGORIES.forEach(cat => mc.appendChild(opt(cat, cat + " (" + cc[cat] + ")")));
+  mc.value = activeCat;
+
+  const ms = $("mSrc");
+  ms.innerHTML = "";
+  ms.appendChild(opt("all", "All sources"));
+  sourcesPresent().forEach(([name, n]) => ms.appendChild(opt(name, clamp(name, 34) + " (" + n + ")")));
+  ms.value = activeSrc;
+}
+
+function opt(val, label){ const o = document.createElement("option"); o.value = val; o.textContent = label; return o; }
+
+function catChip(val, label, n, color){
+  const b = document.createElement("button");
+  b.className = "chip" + (activeCat === val ? " active" : "");
+  b.type = "button";
+  const dot = document.createElement("span"); dot.className = "cat-dot"; dot.style.background = color;
+  const span = document.createElement("span"); span.textContent = label;
+  const num = document.createElement("span"); num.className = "num"; num.textContent = n;
+  b.append(dot, span, num);
+  b.addEventListener("click", () => { activeCat = val; render(); refreshChips(); });
+  return b;
+}
+function srcChip(val, label, n){
+  const b = document.createElement("button");
+  b.className = "chip small" + (activeSrc === val ? " active" : "");
+  b.type = "button";
+  const span = document.createElement("span"); span.textContent = label; span.style.overflow = "hidden"; span.style.textOverflow = "ellipsis"; span.style.whiteSpace = "nowrap";
+  const num = document.createElement("span"); num.className = "num"; num.textContent = n;
+  b.append(span, num);
+  b.title = label;
+  b.addEventListener("click", () => { activeSrc = val; render(); refreshChips(); });
+  return b;
+}
+function refreshChips(){
+  document.querySelectorAll("#catFilters .chip").forEach((c, i) => {
+    const val = i === 0 ? "all" : CATEGORIES[i - 1];
+    c.classList.toggle("active", val === activeCat);
+  });
+  const srcVals = ["all", ...sourcesPresent().map(s => s[0])];
+  document.querySelectorAll("#srcFilters .chip").forEach((c, i) => {
+    c.classList.toggle("active", srcVals[i] === activeSrc);
+  });
+  $("mCat").value = activeCat;
+  $("mSrc").value = activeSrc;
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function currentList(){
+  let list = ITEMS;
+  if (view === "saved") list = list.filter(it => savedSet.has(itemId(it)));
+  if (activeCat !== "all") list = list.filter(it => it.category === activeCat);
+  if (activeSrc !== "all") list = list.filter(it => it.source === activeSrc);
+  if (query){
+    const q = query.toLowerCase();
+    list = list.filter(it =>
+      it.title.toLowerCase().includes(q) ||
+      it.source.toLowerCase().includes(q) ||
+      (it.summary && it.summary.toLowerCase().includes(q))
+    );
+  }
+  return list;
+}
+
+function render(){
+  const feed = $("feed");
+  const list = currentList();
+
+  $("viewTitle").textContent = view === "saved" ? "Saved" : (activeCat === "all" ? "Latest" : activeCat);
+  $("savedCount").textContent = savedSet.size ? "(" + savedSet.size + ")" : "";
+  $("resultMeta").textContent = list.length
+    ? list.length + (list.length === 1 ? " article" : " articles") + (query ? ' for "' + clamp(query, 28) + '"' : "")
+    : "";
+
+  if (!list.length){ renderEmpty(); return; }
+
+  feed.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  list.forEach(it => frag.appendChild(card(it)));
+  feed.appendChild(frag);
+}
+
+function card(it){
+  const id = itemId(it);
+  const isRead = readSet.has(id);
+  const isSaved = savedSet.has(id);
+  const [tintBg, tintInk] = CAT_TINT[it.category] || CAT_TINT.Outlets;
+
+  const el = document.createElement("article");
+  el.className = "article" + (isRead ? " read" : "") + (isSaved ? " saved" : "");
+
+  const stripe = document.createElement("div"); stripe.className = "read-stripe";
+  el.appendChild(stripe);
+
+  const top = document.createElement("div"); top.className = "a-top";
+  const chip = document.createElement("span");
+  chip.className = "cat-chip";
+  chip.style.background = tintBg; chip.style.color = tintInk;
+  const cd = document.createElement("span"); cd.className = "cd"; cd.style.background = CAT_COLOR[it.category] || "#999";
+  const ctext = document.createElement("span"); ctext.textContent = it.category;
+  chip.append(cd, ctext);
+  const src = document.createElement("span"); src.className = "src-name"; src.textContent = it.source;
+  const date = document.createElement("span"); date.className = "a-date"; date.textContent = relDate(it.date);
+  if (it.date) date.title = it.date.toLocaleString();
+  top.append(chip, src, date);
+
+  const h = document.createElement("h3"); h.className = "a-title";
+  if (it.link){
+    const a = document.createElement("a");
+    a.href = it.link; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.textContent = it.title;            // textContent — never innerHTML for feed data
+    a.addEventListener("click", () => markRead(id, true));
+    h.appendChild(a);
+  } else {
+    h.textContent = it.title;
+  }
+
+  el.append(top, h);
+
+  if (it.summary){
+    const p = document.createElement("p"); p.className = "a-summary";
+    p.textContent = it.summary;          // textContent — escapes untrusted summary
+    el.appendChild(p);
+  }
+
+  const actions = document.createElement("div"); actions.className = "a-actions";
+
+  const saveBtn = document.createElement("button");
+  saveBtn.className = "a-btn" + (isSaved ? " on" : "");
+  saveBtn.innerHTML = bookmarkSvg(isSaved) + "<span>" + (isSaved ? "Saved" : "Save") + "</span>";
+  saveBtn.addEventListener("click", () => toggleSave(id));
+
+  const readBtn = document.createElement("button");
+  readBtn.className = "a-btn" + (isRead ? " on" : "");
+  readBtn.innerHTML = checkSvg() + "<span>" + (isRead ? "Read" : "Mark read") + "</span>";
+  readBtn.addEventListener("click", () => markRead(id, !readSet.has(id)));
+
+  actions.append(saveBtn, readBtn);
+  el.appendChild(actions);
+  return el;
+}
+
+function bookmarkSvg(on){
+  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + (on ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16l-6-4-6 4z"/></svg>';
+}
+function checkSvg(){
+  return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4.5 4.5L19 7"/></svg>';
+}
+
+function markRead(id, val){
+  if (val) readSet.add(id); else readSet.delete(id);
+  saveLS(LS.read, readSet);
+  render();
+}
+function toggleSave(id){
+  if (savedSet.has(id)) savedSet.delete(id); else savedSet.add(id);
+  saveLS(LS.saved, savedSet);
+  render();
+}
+
+function renderSkeletons(){
+  const feed = $("feed");
+  feed.innerHTML = "";
+  for (let i = 0; i < 6; i++){
+    const s = document.createElement("div"); s.className = "skel";
+    s.innerHTML =
+      '<div class="sk sk-line" style="width:38%;height:14px;margin-bottom:12px"></div>' +
+      '<div class="sk sk-line" style="width:85%;height:18px"></div>' +
+      '<div class="sk sk-line" style="width:60%;height:18px;margin-bottom:12px"></div>' +
+      '<div class="sk sk-line" style="width:100%"></div>' +
+      '<div class="sk sk-line" style="width:72%"></div>';
+    feed.appendChild(s);
+  }
+}
+
+function renderEmpty(){
+  const saved = view === "saved";
+  $("feed").innerHTML =
+    '<div class="state">' +
+    '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+    (saved
+      ? '<path d="M6 4h12v16l-6-4-6 4z"/>'
+      : '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>') +
+    '</svg>' +
+    '<h3>' + (saved ? "No saved articles yet" : "Nothing matches") + '</h3>' +
+    '<p>' + (saved
+      ? "Tap Save on any article and it’ll show up here for later."
+      : "Try clearing the search or choosing a different category or source.") +
+    '</p></div>';
+}
+
+function renderError(){
+  $("feed").innerHTML =
+    '<div class="state error">' +
+    '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>' +
+    '<h3>Couldn’t load the feeds</h3>' +
+    '<p>The news function isn’t reachable and the public proxy didn’t return anything. Check your connection and try again.</p>' +
+    '<button class="icon-btn" onclick="loadNews()" style="margin:0 auto"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg><span class="lbl">Try again</span></button>' +
+    '</div>';
+}
+
+/* ============================================================
+   Weekly digest
+   ============================================================ */
+let digestOpen = false;
+let digestToken = 0;     // increments per request; stale responses are ignored
+async function loadDigest(){
+  const box = $("digest");
+  const btn = $("digestBtn");
+  // Toggle closed if already open (and cancel any in-flight request).
+  if (digestOpen){ closeDigest(); return; }
+  digestOpen = true;
+  const token = ++digestToken;
+  btn.disabled = true;
+  box.innerHTML =
+    '<div class="digest-card"><div class="digest-loading">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-2.6-6.4"/></svg>' +
+    'Asking Claude for this week’s TL;DR…</div></div>';
+
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20000);
+    let res;
+    try {
+      res = await fetch(FN_NEWS + "?digest=1", { signal: ctrl.signal, headers: { "Accept": "application/json" } });
+    } finally { clearTimeout(t); }
+    if (token !== digestToken) return;   // a newer click superseded this one
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (token !== digestToken) return;
+    const txt = stripHtml(data.digest || data.tldr || data.summary || (typeof data === "string" ? data : ""));
+    if (!txt) throw new Error("empty");
+    renderDigest(txt, data.generated || data.generatedAt || data.date);
+  } catch (e){
+    if (token !== digestToken) return;   // don't repaint over a closed/newer state
+    // Hide gracefully — digest is a server-only feature.
+    box.innerHTML =
+      '<div class="digest-card" style="background:var(--cream-2);border-color:var(--line)">' +
+      '<button class="dclose" aria-label="Dismiss" onclick="closeDigest()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      '<div class="dhead"><h3 style="color:var(--ink)">Weekly digest unavailable</h3></div>' +
+      '<div class="dbody" style="color:var(--muted)">The Claude-powered digest runs in the Netlify function and isn’t reachable right now (this happens when the page is opened as a static file). Deploy with the <code>news</code> function set up and it’ll appear here.</div></div>';
+  } finally {
+    if (token === digestToken) btn.disabled = false;
+  }
+}
+function renderDigest(txt, when){
+  const w = when ? new Date(when) : null;
+  const sub = (w && !isNaN(w)) ? " · " + w.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+  const box = $("digest");
+  box.innerHTML = "";
+  const card = document.createElement("div"); card.className = "digest-card";
+  const close = document.createElement("button"); close.className = "dclose"; close.setAttribute("aria-label", "Dismiss digest");
+  close.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  close.addEventListener("click", closeDigest);
+  const head = document.createElement("div"); head.className = "dhead";
+  const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = "TL;DR";
+  const h = document.createElement("h3"); h.textContent = "This week in AI" + sub;
+  head.append(pill, h);
+  const body = document.createElement("div"); body.className = "dbody";
+  body.textContent = txt;                 // textContent — escapes model output too
+  card.append(close, head, body);
+  box.appendChild(card);
+}
+function closeDigest(){
+  digestToken++;            // invalidate any in-flight request so it can't repaint
+  $("digest").innerHTML = "";
+  digestOpen = false;
+  const btn = $("digestBtn"); if (btn) btn.disabled = false;
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+$("digestBtn").addEventListener("click", loadDigest);
+$("refreshBtn").addEventListener("click", () => { closeDigest(); loadNews(); });
+
+$("tabAll").addEventListener("click", () => { view = "all"; $("tabAll").classList.add("active"); $("tabSaved").classList.remove("active"); render(); });
+$("tabSaved").addEventListener("click", () => { view = "saved"; $("tabSaved").classList.add("active"); $("tabAll").classList.remove("active"); render(); });
+
+let searchTimer;
+$("search").addEventListener("input", e => {
+  const v = e.target.value;
+  $("searchClear").classList.toggle("show", !!v);
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { query = v.trim(); render(); }, 130);
+});
+$("searchClear").addEventListener("click", () => {
+  $("search").value = ""; query = ""; $("searchClear").classList.remove("show"); render(); $("search").focus();
+});
+
+$("mCat").addEventListener("change", e => { activeCat = e.target.value; render(); refreshChips(); });
+$("mSrc").addEventListener("change", e => { activeSrc = e.target.value; render(); refreshChips(); });
+
+const style = document.createElement("style");
+style.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
+document.head.appendChild(style);
+
+/* Load fonts (non-blocking). */
+(function loadFonts(){
+  const l = document.createElement("link");
+  l.rel = "stylesheet";
+  l.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap";
+  document.head.appendChild(l);
+})();
+
+/* Go. */
+loadNews();
+</script>
+</body>
+</html>

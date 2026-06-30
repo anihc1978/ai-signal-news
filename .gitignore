@@ -1,0 +1,15 @@
+# Secrets & environment — never commit
+.env
+.env.*
+
+# Personal interview prep — not part of the public tool
+INTERVIEW-NOTE.md
+
+# Local data / build artifacts
+chroma_db/
+node_modules/
+.netlify/
+
+# OS noise
+.DS_Store
+Thumbs.db
